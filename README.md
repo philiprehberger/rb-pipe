@@ -1,6 +1,7 @@
 # philiprehberger-pipe
 
 [![Gem Version](https://badge.fury.io/rb/philiprehberger-pipe.svg)](https://badge.fury.io/rb/philiprehberger-pipe)
+[![Tests](https://github.com/philiprehberger/rb-pipe/actions/workflows/ci.yml/badge.svg)](https://github.com/philiprehberger/rb-pipe/actions/workflows/ci.yml)
 [![License](https://img.shields.io/github/license/philiprehberger/rb-pipe)](LICENSE)
 
 Functional pipeline composition with conditional steps and error handling for Ruby.
@@ -78,9 +79,10 @@ Philiprehberger::Pipe.new(raw_input)
 
 ```bash
 bundle install
-bundle exec rspec
+bundle exec rspec      # Run tests
+bundle exec rubocop    # Check code style
 ```
 
 ## License
 
-MIT License. See [LICENSE](LICENSE) for details.
+MIT
