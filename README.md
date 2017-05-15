@@ -1,7 +1,7 @@
 # philiprehberger-pipe
 
-[![Gem Version](https://badge.fury.io/rb/philiprehberger-pipe.svg)](https://badge.fury.io/rb/philiprehberger-pipe)
 [![Tests](https://github.com/philiprehberger/rb-pipe/actions/workflows/ci.yml/badge.svg)](https://github.com/philiprehberger/rb-pipe/actions/workflows/ci.yml)
+[![Gem Version](https://badge.fury.io/rb/philiprehberger-pipe.svg)](https://rubygems.org/gems/philiprehberger-pipe)
 [![License](https://img.shields.io/github/license/philiprehberger/rb-pipe)](LICENSE)
 
 Functional pipeline composition with conditional steps and error handling for Ruby.
