@@ -4,7 +4,7 @@
 [![Gem Version](https://badge.fury.io/rb/philiprehberger-pipe.svg)](https://rubygems.org/gems/philiprehberger-pipe)
 [![License](https://img.shields.io/github/license/philiprehberger/rb-pipe)](LICENSE)
 
-Functional pipeline composition with conditional steps and error handling for Ruby.
+Functional pipeline composition with conditional steps and error handling for Ruby
 
 ## Requirements
 
