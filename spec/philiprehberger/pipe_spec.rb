@@ -214,7 +214,7 @@ RSpec.describe Philiprehberger::Pipe do
       pipe = described_class.new(1)
                             .step { |_v| raise StandardError, 'unhandled' }
 
-      expect { pipe.value }.to raise_error(StandardError, 'unhandled')
+      expect { pipe.value }.to raise_error(Philiprehberger::Pipe::PipeError)
     end
 
     it 'catches errors raised in later steps' do
@@ -233,10 +233,10 @@ RSpec.describe Philiprehberger::Pipe do
                               .on_error { |e| e.class.name }
                               .value
 
-      expect(result).to eq('RuntimeError')
+      expect(result).to eq('Philiprehberger::Pipe::PipeError')
     end
 
-    it 'error handler receives the original exception object' do
+    it 'error handler receives PipeError wrapping the original exception' do
       original = ArgumentError.new('bad arg')
       received = nil
 
@@ -245,7 +245,8 @@ RSpec.describe Philiprehberger::Pipe do
                      .on_error { |e| received = e }
                      .value
 
-      expect(received).to be(original)
+      expect(received).to be_a(Philiprehberger::Pipe::PipeError)
+      expect(received.original_error).to be(original)
     end
 
     it 'can set error handler before steps' do
@@ -282,6 +283,258 @@ RSpec.describe Philiprehberger::Pipe do
     it 'returns self from on_error' do
       pipe = described_class.new(1)
       expect(pipe.on_error { |e| e }).to be(pipe)
+    end
+
+    it 'returns self from tap_value' do
+      pipe = described_class.new(1)
+      expect(pipe.tap_value(:check) { |v| v }).to be(pipe)
+    end
+  end
+
+  describe '#compose' do
+    it 'chains two pipelines together' do
+      pipe1 = described_class.new(5)
+                             .step { |v| v + 1 }
+      pipe2 = described_class.new(0)
+                             .step { |v| v * 10 }
+
+      result = pipe1.compose(pipe2).value
+      expect(result).to eq(60)
+    end
+
+    it 'preserves step ordering across composed pipelines' do
+      pipe1 = described_class.new(1)
+                             .step { |v| v + 1 }
+                             .step { |v| v * 2 }
+      pipe2 = described_class.new(0)
+                             .step { |v| v + 10 }
+
+      result = pipe1.compose(pipe2).value
+      expect(result).to eq(14)
+    end
+
+    it 'returns a new Pipe instance' do
+      pipe1 = described_class.new(1).step { |v| v + 1 }
+      pipe2 = described_class.new(0).step { |v| v * 2 }
+
+      composed = pipe1.compose(pipe2)
+      expect(composed).to be_a(described_class)
+      expect(composed).not_to be(pipe1)
+      expect(composed).not_to be(pipe2)
+    end
+
+    it 'does not modify the original pipelines' do
+      pipe1 = described_class.new(5).step { |v| v + 1 }
+      pipe2 = described_class.new(0).step { |v| v * 10 }
+
+      pipe1.compose(pipe2)
+
+      expect(pipe1.value).to eq(6)
+    end
+
+    it 'supports the >> operator' do
+      pipe1 = described_class.new(3)
+                             .step { |v| v + 2 }
+      pipe2 = described_class.new(0)
+                             .step { |v| v * 3 }
+
+      result = (pipe1 >> pipe2).value
+      expect(result).to eq(15)
+    end
+
+    it 'composes multiple pipelines with >> chaining' do
+      pipe1 = described_class.new(1).step { |v| v + 1 }
+      pipe2 = described_class.new(0).step { |v| v * 2 }
+      pipe3 = described_class.new(0).step { |v| v + 100 }
+
+      result = (pipe1 >> pipe2 >> pipe3).value
+      expect(result).to eq(104)
+    end
+
+    it 'uses the initial value from the first pipeline' do
+      pipe1 = described_class.new(100).step { |v| v + 1 }
+      pipe2 = described_class.new(999).step { |v| v + 1 }
+
+      result = pipe1.compose(pipe2).value
+      expect(result).to eq(102)
+    end
+
+    it 'composes empty pipelines' do
+      pipe1 = described_class.new(42)
+      pipe2 = described_class.new(0)
+
+      result = pipe1.compose(pipe2).value
+      expect(result).to eq(42)
+    end
+  end
+
+  describe 'step naming' do
+    it 'accepts an optional symbol name as first argument' do
+      result = described_class.new(5)
+                              .step(:double) { |v| v * 2 }
+                              .value
+      expect(result).to eq(10)
+    end
+
+    it 'wraps errors in PipeError with step_name' do
+      pipe = described_class.new(1)
+                            .step(:validate) { |_v| raise StandardError, 'invalid' }
+
+      expect { pipe.value }.to raise_error(Philiprehberger::Pipe::PipeError) do |e|
+        expect(e.step_name).to eq(:validate)
+        expect(e.message).to eq('invalid')
+      end
+    end
+
+    it 'includes the original error in PipeError' do
+      original = ArgumentError.new('bad')
+      pipe = described_class.new(1)
+                            .step(:parse) { |_v| raise original }
+
+      expect { pipe.value }.to raise_error(Philiprehberger::Pipe::PipeError) do |e|
+        expect(e.original_error).to be(original)
+        expect(e.step_name).to eq(:parse)
+      end
+    end
+
+    it 'has nil step_name for unnamed steps' do
+      pipe = described_class.new(1)
+                            .step { |_v| raise StandardError, 'oops' }
+
+      expect { pipe.value }.to raise_error(Philiprehberger::Pipe::PipeError) do |e|
+        expect(e.step_name).to be_nil
+      end
+    end
+
+    it 'works with named steps and guards together' do
+      result = described_class.new(10)
+                              .step(:double, guard_if: ->(v) { v > 5 }) { |v| v * 2 }
+                              .value
+      expect(result).to eq(20)
+    end
+
+    it 'identifies the correct step on error in a multi-step pipeline' do
+      pipe = described_class.new(1)
+                            .step(:first) { |v| v + 1 }
+                            .step(:second) { |_v| raise StandardError, 'fail here' }
+                            .step(:third) { |v| v + 1 }
+
+      expect { pipe.value }.to raise_error(Philiprehberger::Pipe::PipeError) do |e|
+        expect(e.step_name).to eq(:second)
+      end
+    end
+
+    it 'error handler receives PipeError with step_name' do
+      received = nil
+
+      described_class.new(1)
+                     .step(:transform) { |_v| raise StandardError, 'err' }
+                     .on_error { |e| received = e }
+                     .value
+
+      expect(received).to be_a(Philiprehberger::Pipe::PipeError)
+      expect(received.step_name).to eq(:transform)
+    end
+  end
+
+  describe '#tap_value' do
+    it 'captures the current value without affecting flow' do
+      captured = nil
+
+      result = described_class.new(10)
+                              .step { |v| v + 5 }
+                              .tap_value(:after_add) { |v| captured = v }
+                              .step { |v| v * 2 }
+                              .value
+
+      expect(result).to eq(30)
+      expect(captured).to eq(15)
+    end
+
+    it 'ignores the return value of the block' do
+      result = described_class.new(10)
+                              .tap_value(:check) { |_v| 999 }
+                              .value
+      expect(result).to eq(10)
+    end
+
+    it 'works without a name' do
+      captured = nil
+
+      result = described_class.new(7)
+                              .tap_value { |v| captured = v }
+                              .value
+
+      expect(result).to eq(7)
+      expect(captured).to eq(7)
+    end
+
+    it 'captures multiple intermediate values' do
+      captures = {}
+
+      result = described_class.new(1)
+                              .step { |v| v + 1 }
+                              .tap_value(:after_first) { |v| captures[:after_first] = v }
+                              .step { |v| v * 3 }
+                              .tap_value(:after_second) { |v| captures[:after_second] = v }
+                              .step { |v| v + 10 }
+                              .value
+
+      expect(result).to eq(16)
+      expect(captures).to eq({ after_first: 2, after_second: 6 })
+    end
+
+    it 'can be used at the start of a pipeline' do
+      captured = nil
+
+      result = described_class.new(42)
+                              .tap_value(:initial) { |v| captured = v }
+                              .step { |v| v + 1 }
+                              .value
+
+      expect(result).to eq(43)
+      expect(captured).to eq(42)
+    end
+
+    it 'can be used at the end of a pipeline' do
+      captured = nil
+
+      result = described_class.new(5)
+                              .step { |v| v * 4 }
+                              .tap_value(:final) { |v| captured = v }
+                              .value
+
+      expect(result).to eq(20)
+      expect(captured).to eq(20)
+    end
+  end
+
+  describe Philiprehberger::Pipe::PipeError do
+    it 'inherits from Philiprehberger::Pipe::Error' do
+      expect(described_class.superclass).to eq(Philiprehberger::Pipe::Error)
+    end
+
+    it 'inherits from StandardError' do
+      expect(described_class.ancestors).to include(StandardError)
+    end
+
+    it 'can be created with a message' do
+      error = described_class.new('something went wrong')
+      expect(error.message).to eq('something went wrong')
+    end
+
+    it 'can be created with step_name and original_error' do
+      original = RuntimeError.new('boom')
+      error = described_class.new(step_name: :validate, original_error: original)
+
+      expect(error.step_name).to eq(:validate)
+      expect(error.original_error).to be(original)
+      expect(error.message).to eq('boom')
+    end
+
+    it 'has nil step_name by default' do
+      error = described_class.new('oops')
+      expect(error.step_name).to be_nil
     end
   end
 end

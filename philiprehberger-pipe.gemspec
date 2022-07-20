@@ -9,8 +9,9 @@ Gem::Specification.new do |spec|
   spec.email = ['me@philiprehberger.com']
 
   spec.summary = 'Functional pipeline composition with conditional steps and error handling for Ruby'
-  spec.description = 'A Ruby library for functional pipeline composition with conditional steps, ' \
-                     'side effects via tee, and built-in error handling for clean data transformations.'
+  spec.description = 'A Ruby library for functional pipeline composition with named steps, ' \
+                     'pipeline composition, intermediate value capture, conditional guards, ' \
+                     'and built-in error handling for clean data transformations.'
   spec.homepage = 'https://github.com/philiprehberger/rb-pipe'
   spec.license = 'MIT'
   spec.required_ruby_version = '>= 3.1.0'
