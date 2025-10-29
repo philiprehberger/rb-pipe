@@ -537,4 +537,56 @@ RSpec.describe Philiprehberger::Pipe do
       expect(error.step_name).to be_nil
     end
   end
+
+  describe '#call' do
+    it 'executes the pipeline on the given value' do
+      pipe = described_class.new
+                            .step { |v| v + 1 }
+                            .step { |v| v * 2 }
+      expect(pipe.call(5)).to eq(12)
+    end
+
+    it 'is reusable on different inputs' do
+      pipe = described_class.new
+                            .step(&:strip)
+                            .step(&:downcase)
+      expect(pipe.call('  HELLO ')).to eq('hello')
+      expect(pipe.call(' WORLD')).to eq('world')
+    end
+
+    it 'respects on_error handler' do
+      pipe = described_class.new
+                            .step { |_v| raise 'boom' }
+                            .on_error { |_e| 'recovered' }
+      expect(pipe.call(1)).to eq('recovered')
+    end
+
+    it 'respects guards' do
+      pipe = described_class.new
+                            .step(guard_if: ->(v) { v.is_a?(String) }, &:upcase)
+      expect(pipe.call('hello')).to eq('HELLO')
+      expect(pipe.call(42)).to eq(42)
+    end
+  end
+
+  describe '#to_proc' do
+    it 'returns a Proc' do
+      pipe = described_class.new.step { |v| v * 2 }
+      expect(pipe.to_proc).to be_a(Proc)
+    end
+
+    it 'works with map via & operator' do
+      pipe = described_class.new
+                            .step(&:strip)
+                            .step(&:downcase)
+      results = ['  FOO ', ' BAR '].map(&pipe)
+      expect(results).to eq(%w[foo bar])
+    end
+
+    it 'works with select via & operator' do
+      pipe = described_class.new.step { |v| v > 3 }
+      results = [1, 2, 5, 4, 3].select(&pipe)
+      expect(results).to eq([5, 4])
+    end
+  end
 end

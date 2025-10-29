@@ -103,6 +103,21 @@ validate_and_save = Philiprehberger::Pipe.new(nil)
 result = (normalize >> validate_and_save).value
 ```
 
+### Reusable Pipelines
+
+Build a pipeline once and apply it to any input with `call`. Use `to_proc` for integration with `map`, `select`, and other Enumerable methods:
+
+```ruby
+require "philiprehberger/pipe"
+
+normalize = Philiprehberger::Pipe.new
+  .step { |v| v.strip }
+  .step { |v| v.downcase }
+
+normalize.call("  HELLO ")           # => "hello"
+["  FOO ", " BAR "].map(&normalize)  # => ["foo", "bar"]
+```
+
 ### Error Handling
 
 ```ruby
@@ -125,8 +140,10 @@ result = Philiprehberger::Pipe.new(raw_input)
 | `#tap_value(name = nil, &block)` | Capture and inspect intermediate values without affecting flow |
 | `#compose(other)` | Chain two pipelines together, returns a new Pipe |
 | `#>>(other)` | Alias for compose |
+| `#call(value)` | Execute the pipeline on a given value (reusable) |
+| `#to_proc` | Convert to Proc for use with `&` operator |
 | `#on_error(&block)` | Set an error handler for the pipeline |
-| `#value` | Execute the pipeline and return the final result |
+| `#value` | Execute the pipeline using the initial value |
 
 ## Development
 
