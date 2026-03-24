@@ -15,7 +15,7 @@ Functional pipeline composition with conditional steps and error handling for Ru
 Add to your Gemfile:
 
 ```ruby
-gem 'philiprehberger-pipe'
+gem "philiprehberger-pipe"
 ```
 
 Or install directly:
