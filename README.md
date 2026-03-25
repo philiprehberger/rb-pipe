@@ -27,7 +27,7 @@ gem install philiprehberger-pipe
 ## Usage
 
 ```ruby
-require 'philiprehberger/pipe'
+require "philiprehberger/pipe"
 
 result = Philiprehberger::Pipe.new(10)
   .step { |v| v + 5 }
@@ -79,8 +79,8 @@ Philiprehberger::Pipe.new(raw_input)
 
 ```bash
 bundle install
-bundle exec rspec      # Run tests
-bundle exec rubocop    # Check code style
+bundle exec rspec
+bundle exec rubocop
 ```
 
 ## License
