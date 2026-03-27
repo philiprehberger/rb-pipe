@@ -3,6 +3,7 @@
 [![Tests](https://github.com/philiprehberger/rb-pipe/actions/workflows/ci.yml/badge.svg)](https://github.com/philiprehberger/rb-pipe/actions/workflows/ci.yml)
 [![Gem Version](https://badge.fury.io/rb/philiprehberger-pipe.svg)](https://rubygems.org/gems/philiprehberger-pipe)
 [![License](https://img.shields.io/github/license/philiprehberger/rb-pipe)](LICENSE)
+[![Sponsor](https://img.shields.io/badge/sponsor-GitHub%20Sponsors-ec6cb9)](https://github.com/sponsors/philiprehberger)
 
 Functional pipeline composition with conditional steps and error handling
 
@@ -85,4 +86,4 @@ bundle exec rubocop
 
 ## License
 
-MIT
+[MIT](LICENSE)
