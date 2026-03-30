@@ -3,6 +3,8 @@
 module Philiprehberger
   class Pipe
     class Pipeline
+      attr_reader :steps
+
       def initialize
         @steps = []
       end

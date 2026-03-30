@@ -7,6 +7,19 @@ and this gem adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-03-29
+
+### Added
+- Pipeline composition with `compose` and `>>` operator to chain pipelines together
+- Step naming with optional symbol argument for error identification
+- `PipeError` class wrapping errors with `step_name` and `original_error` attributes
+- `tap_value` method for capturing and inspecting intermediate values
+- `.github/` issue templates, PR template, and dependabot configuration
+
+### Changed
+- Errors raised in steps are now wrapped in `PipeError` with step context
+- README updated with full badge set, Support section, and new feature documentation
+
 ## [0.2.1] - 2026-03-26
 
 ### Changed
