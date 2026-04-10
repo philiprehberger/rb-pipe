@@ -10,8 +10,9 @@ Gem::Specification.new do |spec|
 
   spec.summary = 'Functional pipeline composition with conditional steps and error handling for Ruby'
   spec.description = 'A Ruby library for functional pipeline composition with named steps, ' \
-                     'pipeline composition, intermediate value capture, conditional guards, ' \
-                     'and built-in error handling for clean data transformations.'
+                     'pipeline composition, reusable call/to_proc interface, intermediate value ' \
+                     'capture, conditional guards, and built-in error handling for clean data ' \
+                     'transformations.'
   spec.homepage = 'https://philiprehberger.com/open-source-packages/ruby/philiprehberger-pipe'
   spec.license = 'MIT'
   spec.required_ruby_version = '>= 3.1.0'

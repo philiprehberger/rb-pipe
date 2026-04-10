@@ -44,6 +44,14 @@ module Philiprehberger
 
     alias >> compose
 
+    def call(value)
+      @pipeline.execute(value, error_handler: @error_handler)
+    end
+
+    def to_proc
+      method(:call).to_proc
+    end
+
     def value
       @pipeline.execute(@initial_value, error_handler: @error_handler)
     end
