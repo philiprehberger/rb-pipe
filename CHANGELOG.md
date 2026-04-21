@@ -7,6 +7,12 @@ and this gem adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-04-21
+
+### Added
+- `Pipe.halt!(value)` — short-circuits the currently executing pipeline and returns `value` as the final result; bypasses `on_error`
+- `Pipe::Halted` exception carrying the halt value (intended for rescue-free control flow)
+
 ## [0.4.0] - 2026-04-09
 
 ### Added

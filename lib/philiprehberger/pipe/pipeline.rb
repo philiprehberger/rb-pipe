@@ -17,6 +17,8 @@ module Philiprehberger
         @steps.reduce(initial_value) do |value, step|
           step.execute(value)
         end
+      rescue Halted => e
+        e.value
       rescue StandardError => e
         raise unless error_handler
 

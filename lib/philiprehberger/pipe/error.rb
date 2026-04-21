@@ -13,5 +13,17 @@ module Philiprehberger
         super(message || original_error&.message)
       end
     end
+
+    # Raised internally by `Pipe.halt!(value)` to short-circuit the pipeline
+    # and return `value` as the final result. Not treated as an error � it
+    # bypasses `on_error` handlers.
+    class Halted < Error
+      attr_reader :value
+
+      def initialize(value)
+        @value = value
+        super('pipeline halted')
+      end
+    end
   end
 end
