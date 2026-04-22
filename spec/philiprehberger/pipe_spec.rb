@@ -589,4 +589,35 @@ RSpec.describe Philiprehberger::Pipe do
       expect(results).to eq([5, 4])
     end
   end
+
+  describe '.halt!' do
+    it 'short-circuits the pipeline and returns the halt value' do
+      pipe = described_class.new
+                            .step { |v| v + 1 }
+                            .step { |v| described_class.halt!(:done) if v.positive? }
+                            .step { |v| v * 100 }
+      expect(pipe.call(0)).to eq(:done)
+    end
+
+    it 'does not invoke on_error for halts' do
+      errors = []
+      pipe = described_class.new
+                            .on_error { |e| errors << e }
+                            .step { described_class.halt!('stop') }
+      expect(pipe.call(1)).to eq('stop')
+      expect(errors).to be_empty
+    end
+
+    it 'works from inside a tee step' do
+      pipe = described_class.new
+                            .tee { |_v| described_class.halt!('halted-from-tee') }
+                            .step { |v| v * 10 }
+      expect(pipe.call(5)).to eq('halted-from-tee')
+    end
+
+    it 'bubbles Halted if rescued manually so callers cannot accidentally swallow it' do
+      halted = described_class::Halted
+      expect { raise halted, 42 }.to raise_error(halted) { |e| expect(e.value).to eq(42) }
+    end
+  end
 end

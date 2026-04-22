@@ -7,6 +7,16 @@ require_relative 'pipe/pipeline'
 
 module Philiprehberger
   class Pipe
+    # Short-circuit the currently executing pipeline, returning `value` as the
+    # final result of `#call` / `#value`. Safe to call from inside any step;
+    # does NOT trigger `on_error` handlers.
+    #
+    # @param value [Object] the value to return as the pipeline result
+    # @raise [Halted] always (caught internally by the Pipeline)
+    def self.halt!(value)
+      raise Halted, value
+    end
+
     def initialize(initial_value = nil, pipeline: nil)
       @initial_value = initial_value
       @pipeline = pipeline || Pipeline.new

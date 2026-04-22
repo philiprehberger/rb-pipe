@@ -18,7 +18,7 @@ module Philiprehberger
 
         result = callable.call(value)
         type == :tee ? value : result
-      rescue PipeError
+      rescue PipeError, Halted
         raise
       rescue StandardError => e
         raise PipeError.new(e.message, step_name: name, original_error: e)

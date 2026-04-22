@@ -118,6 +118,24 @@ normalize.call("  HELLO ")           # => "hello"
 ["  FOO ", " BAR "].map(&normalize)  # => ["foo", "bar"]
 ```
 
+### Early Return (Halt)
+
+Short-circuit a pipeline from any step with `Pipe.halt!(value)` — the pipeline returns `value` immediately and the remaining steps are skipped. Halts bypass `on_error` handlers because they aren't errors.
+
+```ruby
+require "philiprehberger/pipe"
+
+result = Philiprehberger::Pipe.new(user_input)
+  .step(:parse) { |v| JSON.parse(v) }
+  .step(:short_circuit_if_cached) do |v|
+    cached = Cache.get(v[:id])
+    Philiprehberger::Pipe.halt!(cached) if cached
+    v
+  end
+  .step(:expensive_work) { |v| heavy_compute(v) }
+  .value
+```
+
 ### Error Handling
 
 ```ruby
@@ -135,6 +153,7 @@ result = Philiprehberger::Pipe.new(raw_input)
 | Method | Description |
 |--------|-------------|
 | `Pipe.new(initial_value)` | Create a new pipeline with a starting value |
+| `Pipe.halt!(value)` | Short-circuit the running pipeline; the pipeline returns `value` and skips the remaining steps |
 | `#step(name = nil, guard_if: nil, guard_unless: nil, &block)` | Add a transformation step with optional name and guards |
 | `#tee(&block)` | Add a side-effect step (value passes through unchanged) |
 | `#tap_value(name = nil, &block)` | Capture and inspect intermediate values without affecting flow |
