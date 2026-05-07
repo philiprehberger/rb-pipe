@@ -590,6 +590,40 @@ RSpec.describe Philiprehberger::Pipe do
     end
   end
 
+  describe '#step_count' do
+    it 'returns 0 for an empty pipeline' do
+      expect(described_class.new.step_count).to eq(0)
+    end
+
+    it 'returns 1 after a single .step' do
+      pipe = described_class.new.step { |v| v + 1 }
+      expect(pipe.step_count).to eq(1)
+    end
+
+    it 'counts a mix of .step, .tee, and .tap_value' do
+      pipe = described_class.new
+                            .step { |v| v + 1 }
+                            .tee { |_v| nil }
+                            .tap_value(:capture) { |_v| nil }
+                            .step { |v| v * 2 }
+      expect(pipe.step_count).to eq(4)
+    end
+
+    it 'equals the sum of both inputs step counts after compose' do
+      pipe1 = described_class.new
+                             .step { |v| v + 1 }
+                             .step { |v| v * 2 }
+      pipe2 = described_class.new
+                             .step { |v| v - 3 }
+                             .tee { |_v| nil }
+                             .tap_value { |_v| nil }
+
+      composed = pipe1 >> pipe2
+      expect(composed.step_count).to eq(pipe1.step_count + pipe2.step_count)
+      expect(composed.step_count).to eq(5)
+    end
+  end
+
   describe '.halt!' do
     it 'short-circuits the pipeline and returns the halt value' do
       pipe = described_class.new

@@ -66,6 +66,15 @@ module Philiprehberger
       @pipeline.execute(@initial_value, error_handler: @error_handler)
     end
 
+    # Number of steps currently registered on the pipeline.
+    # Includes both transform and tee steps. After `compose`/`>>`,
+    # equals the sum of both inputs' step counts.
+    #
+    # @return [Integer]
+    def step_count
+      @pipeline.steps.size
+    end
+
     protected
 
     attr_reader :pipeline

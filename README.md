@@ -148,6 +148,18 @@ result = Philiprehberger::Pipe.new(raw_input)
   .value
 ```
 
+### Inspecting Pipelines
+
+```ruby
+require 'philiprehberger/pipe'
+
+pipeline = Philiprehberger::Pipe.new
+                                .step { |x| x * 2 }
+                                .step { |x| x + 1 }
+
+pipeline.step_count # => 2
+```
+
 ## API
 
 | Method | Description |
@@ -163,6 +175,7 @@ result = Philiprehberger::Pipe.new(raw_input)
 | `#to_proc` | Convert to Proc for use with `&` operator |
 | `#on_error(&block)` | Set an error handler for the pipeline |
 | `#value` | Execute the pipeline using the initial value |
+| `#step_count` | Returns the number of steps currently in the pipeline |
 
 ## Development
 
